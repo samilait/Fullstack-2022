@@ -6,6 +6,20 @@ const Button = (props) => {
   )
 }
 
+const StatisticLine = (props) => {
+  let extension = ""
+
+  if (props.text === "positive") {
+    extension = "%"
+  }
+
+  return (
+    <div>
+      <p>{props.text} {props.value} {extension}</p>
+    </div>
+  )
+}
+
 const Statistics = (props) => {
 
   if (props.total === 0) {
@@ -15,17 +29,17 @@ const Statistics = (props) => {
       <p>No feedback given</p>
     </div>
     )
-  }  
+  }
 
   return (
     <div>      
       <h1>statistics</h1>
-      <p>good {props.good}</p>
-      <p>neutral {props.neutral}</p>
-      <p>bad {props.bad}</p>
-      <p>all {props.total}</p>
-      <p>average {props.sum / props.total}</p>
-      <p>positive {100 * props.good / props.total} %</p>
+      <StatisticLine text="good" value={props.good} />
+      <StatisticLine text="neutral" value={props.neutral} />
+      <StatisticLine text="bad" value={props.bad} />
+      <StatisticLine text="all" value={props.total} />
+      <StatisticLine text="average" value={props.sum / props.total} />
+      <StatisticLine text="positive" value={100 * props.good / props.total} />
     </div>
   )
 }
@@ -69,13 +83,6 @@ const App = () => {
         total={total} 
         sum={sum} 
       />
-      {/* <h1>statistics</h1>
-      <p>good {good}</p>
-      <p>neutral {neutral}</p>
-      <p>bad {bad}</p>
-      <p>all {total}</p>
-      <p>average {sum / total}</p>
-      <p>positive {100 * good / total} %</p> */}
     </div>
   )
 }
