@@ -23,6 +23,7 @@ const App = () => {
   const [selected, setSelected] = useState(0)
   const [votes, setVotes] = useState(0)
   const [points, setPoints] = useState(new Uint8Array(anecdotes.length))
+  const [maxVotes, setMaxVotes] = useState(0)
 
   const generateRandom = () => {
     let min = 0
@@ -37,14 +38,21 @@ const App = () => {
     copy[selected] += 1
     setPoints(copy)
     setVotes(copy[selected])
+    let max = Math.max(...copy)
+    const i = copy.findIndex(a => a === max)
+    setMaxVotes(i)
   }
 
   return (
     <div>      
+      <h1>Anecdote of the day</h1>
       {anecdotes[selected]}
       <p>has {votes} votes</p>
       <Button handleClick={handleVote} text="vote" />
       <Button handleClick={generateRandom} text="next anecdote" />
+      <h1>Anecdote with most votes</h1>
+      {anecdotes[maxVotes]}
+      <p>has {points[maxVotes]} votes</p>
     </div>
   )
 
