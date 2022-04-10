@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react'
-import axios from 'axios'
+// import axios from 'axios'
+import personService from './services/persons'
 
 const Filter = (props) => {
   const {name, handleFilterPerson} = props
@@ -30,12 +31,20 @@ const NewPerson = (props) => {
   )
 }
 
-const Persons = ({ persons }) => {
+const Persons = ({filterPersons, removePerson}) => {
   return (
     <div>
-      <h2>Numbers</h2>
-      {persons.map(person => <li key={person.name}>{person.name} {person.number}</li>)}
+      {filterPersons.map(person => <Person key={person.id} person={person} removePerson={removePerson} />)}
     </div>
+  )
+}
+
+const Person = ({ person, removePerson }) => {
+  return (
+    <li>
+      {person.name} {person.number} 
+      <button onClick={() => { if (window.confirm(`Delete ${person.name}?`)) { removePerson(person.id)}}}>delete</button>
+    </li>
   )
 }
 
@@ -54,12 +63,20 @@ const App = () => {
   const [filterName, setFilterName] = useState('')
 
   useEffect(() => {
-    axios
-      .get('http://localhost:3001/persons')
-      .then(response => {
-        setPersons(response.data)
-        setFilterPersons(response.data)
+    personService
+      .getAll()
+      .then(initialPersons => {
+        console.log(initialPersons)
+        setPersons(initialPersons)
+        setFilterPersons(initialPersons)
       })
+
+      // axios
+      // .get('http://localhost:3001/persons')
+      // .then(response => {
+      //   setPersons(response.data)
+      //   setFilterPersons(response.data)
+      // })
   }, [])
 
   const addPerson = (event) => {
@@ -72,17 +89,53 @@ const App = () => {
     console.log('personObject', personObject)
 
     if (persons.filter(p => p.name.toLowerCase() === newName.toLowerCase()).length > 0) {
-      window.alert(`${newName} is already added to phonebook`)
-    } else {
-      setPersons(persons.concat(personObject))
+      // window.alert(`${newName} is already added to phonebook`)
+      if (window.confirm(`${newName} is already added to phonebook, replace old number with a new one`)) {
+        const person = persons.find(p => p.name === newName)
+        const id = person.id
+        const changedPerson = {...person, number: newNumber}
 
-      const copy = [...persons]
-      setFilterPersons(copy.concat(personObject))
+        personService
+          .update(person.id, changedPerson)
+          .then(returnedPerson => {
+            setPersons(persons.map(person => person.id !== id ? person : returnedPerson))
+            setFilterPersons(filterPersons.map(person => person.id !== id ? person : returnedPerson))
+          })
+        
+      }
+    } else {
+      personService
+        .create(personObject)
+        .then(returnedPerson => {
+          setPersons(persons.concat(returnedPerson))
+          const copy = [...persons]
+          setFilterPersons(copy.concat(returnedPerson))
+        })
+
+      // setPersons(persons.concat(personObject))
+
+      // const copy = [...persons]
+      // setFilterPersons(copy.concat(personObject))
     }
     setNewName('')
     setNewNumber('')
     setFilterName('')
   }
+
+  const removePerson = (id) => {
+    // const rmPerson = persons.filter(person => person.id === id)[0]
+    personService
+      .remove(id)
+      .then(() => {
+        personService
+          .getAll()
+          .then(initialPersons => {
+            setPersons(initialPersons)
+            setFilterPersons(initialPersons)
+          })      
+      })
+  }
+
 
   const handlePersonChange = (event) => {
     console.log(event.target.value)
@@ -116,7 +169,14 @@ const App = () => {
         newNumber={newNumber}
         handleNumberChange={handleNumberChange}
       />
-      <Persons persons={filterPersons} />
+      <h2>Numbers</h2>
+      {/* {persons.map(person => <li key={person.name}>{person.name} {person.number}</li>)}
+      {filterPersons.map(person => 
+        <Person key={person.name} person={person} deletePerson={deletePerson(person.id)} />
+      )} */}
+
+
+      <Persons filterPersons={filterPersons} removePerson={removePerson} />
     </div>
   )
 
